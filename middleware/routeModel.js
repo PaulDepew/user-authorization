@@ -9,20 +9,24 @@
  */
 
 // Require a User Model
-const UserModel = require('../auth/users/users-model');
+const UserModel = require('./auth/users/users-model');
 
 function getModel(req, res, next){
   let model = req.params.model;
-
+  let path = req.path;
+  // this switch is not working?
   switch(model){
   case 'signup':
-    req.model = new UserModel();
+    req.model = new UserModel(req);
+    next();
     break;
   case 'signin':
-    req.model = new UserModel();
+    req.model = new UserModel(req);
+    next();
     break;
   case 'users':
-    res.model = new UserModel();
+    req.model = new UserModel(req);
+    next();
     break;
   default : 
     next('Invalid Model');

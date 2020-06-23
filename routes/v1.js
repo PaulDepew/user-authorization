@@ -8,51 +8,63 @@
 const express = require('express');
 const router = express.Router();
 const cors = require('cors');
-const basew64 = require('base-64');
-const bcrypt = require('bcrypt');
+// const basew64 = require('base-64');
+// const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
-const Model = require('../middleware/auth/model.js');
-
+const routeModel = require('../middleware/routeModel.js');
 const User = require('../middleware/auth/users/users-model');
+const authMiddleware = require('../middleware/auth/authmodel');
+const usersSchema = require('../middleware/auth/users/users-schema.js');
 
-router.get('/:model', handleGetUsers);
-router.post('/:model', handleCreateUser);
-router.post('/:model', handleAuthorizeUser);
+// defines the route parameters to be used 'model.js'
+// router.param('model', routeModel);
+
+router.get('/users', handleGetUsers);
+router.post('/signup', handleCreateUser);
+router.post('/signin', handleSignIn);
 
 /**
- * getOne - gets the requested thing from the database
+ * HandleGetUser - gets all users
  * @function handleGetUsers
  * @param {*} request 
  * @param {*} response 
  * @returns {object}
  */
 async function handleGetUsers(req, res){
-  res.json(new User);
+  let tempUser = new User({username: "HI Mom", password: "test" });
+  res.send( await tempUser.get());
+  // res.send(new User());
 }
 
 
 /**
- * getOne - gets the requested thing from the database
+ * handleCreateUser - creates a user based on the body
  * @function handleCreateUser
  * @param {*} request 
  * @param {*} response 
  * @returns {object}
  */
 async function handleCreateUser(req, res){
-  res.send('Working on Creating');
+  req.body.password = await User.hashPass(req.body.password);
+  let newUser = new User(req.body);
+  // await newUser.create(req.body);
+  await newUser.create(newUser);
+  let token = await newUser.generateToken();
+  res.send(`New user Generated! ${token} with ${newUser.password} `);
+  // await res.send(new User(req.body).generateToken());
 }
 
 
 /**
- * getOne - gets the requested thing from the database
- * @function handleAuthorizeUser
+ * handleSignIn - authorizes and signs in a user
+ * @function handleSignIn
  * @param {*} request 
  * @param {*} response 
  * @returns {object}
  */
-async function handleAuthorizeUser(req, res){
-  res.send('Working on Authorizing');
+async function handleSignIn(req, res){
+ await res.json('Working on signing in');
 }
 
 module.exports = router;
