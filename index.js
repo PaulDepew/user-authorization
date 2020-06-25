@@ -17,4 +17,9 @@ mongoose.connect(process.env.MONGO_ATLAS_URI, {
   useNewUrlParser: true,
 });
 
+const db = mongoose.connection;
+db.on('open', ()=> {
+  console.log('Mongo Connected!');
+});
+
 server.start(PORT);

@@ -8,21 +8,23 @@
 const express = require('express');
 const router = express.Router();
 const cors = require('cors');
-// const basew64 = require('base-64');
-// const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const superagent = require('superagent');
 
 const routeModel = require('../middleware/routeModel.js');
 const User = require('../middleware/auth/users/users-model');
 const authMiddleware = require('../middleware/auth/authmodel');
-const usersSchema = require('../middleware/auth/users/users-schema.js');
+
 
 // defines the route parameters to be used 'model.js'
 // router.param('model', routeModel);
 
 router.get('/users', handleGetUsers);
 router.post('/signup', handleCreateUser);
-router.post('/signin', handleSignIn);
+router.post('/signin', authMiddleware, handleSignIn);
+
+
+// router.get('/oauth', handleOauth);
 
 /**
  * HandleGetUser - gets all users
@@ -48,11 +50,11 @@ async function handleGetUsers(req, res){
 async function handleCreateUser(req, res){
   req.body.password = await User.hashPass(req.body.password);
   let newUser = new User(req.body);
-  // await newUser.create(req.body);
   await newUser.create(newUser);
-  let token = await newUser.generateToken();
-  res.send(`New user Generated! ${token} with ${newUser.password} `);
-  // await res.send(new User(req.body).generateToken());
+  let token = await newUser.generateToken(req.body.username);
+  res.cookie('token', token);
+  res.header('token', token);
+  res.send(`New user Generated! ${token} `);
 }
 
 
@@ -64,7 +66,14 @@ async function handleCreateUser(req, res){
  * @returns {object}
  */
 async function handleSignIn(req, res){
- await res.json('Working on signing in');
+  if (req.user) {
+    let token = await User.generateToken({ username: req.user.username });
+    res.cookie('token', token);
+    res.header('token', token);
+    res.send(`${token} signed in!`);
+  } else {
+    res.status(403).send('Invalid');
+  }
 }
 
 module.exports = router;

@@ -10,7 +10,9 @@
 const userSchema = require('./users-schema.js');
 const Mongo = require('../../mongo-model.js');
 const bcrypt = require('bcrypt');
-const base64 = require('base-64');
+const jwt = require('jsonwebtoken');
+const { response } = require('express');
+
 
 class User extends Mongo {
   constructor(schema){
@@ -24,10 +26,33 @@ class User extends Mongo {
   }
   
 
-  async generateToken(){
-    let payload = `${this.username}:${this.password}`;
-    let encodedPayload = await base64.encode(payload);
-    return encodedPayload;
+  async generateToken(username){
+    let token = jwt.sign(username, process.env.SECRET);
+    return token;
+  }
+
+  static async authenticateUser(username, password){
+    try {
+      let user = await userSchema.find({username});
+      let authorized = await bcrypt.compare(password, user[0].password);
+      if (authorized) {
+        return user[0];
+      } else {
+        return false;
+      }
+    } catch (e){
+      console.error('Error::', e);
+      return e;
+    }
+  }
+
+  static async validateToken(token){
+    try{
+      let user = await jwt.verify(token, process.env.SECRET);
+      return user;
+    } catch(e){
+      return false;
+    }
   }
 }
 
