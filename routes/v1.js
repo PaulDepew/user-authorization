@@ -14,12 +14,14 @@ const superagent = require('superagent');
 const routeModel = require('../middleware/routeModel.js');
 const User = require('../middleware/auth/users/users-model');
 const authMiddleware = require('../middleware/auth/authmodel');
+const bearer = require('../middleware/auth/bearerMiddleware');
+const acl = require('../middleware/auth/aclMiddleware');
 
 
 // defines the route parameters to be used 'model.js'
 // router.param('model', routeModel);
 
-router.get('/users', handleGetUsers);
+router.get('/users',bearer, acl('read'), handleGetUsers);
 router.post('/signup', handleCreateUser);
 router.post('/signin', authMiddleware, handleSignIn);
 
