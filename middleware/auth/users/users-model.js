@@ -9,9 +9,10 @@
 
 const userSchema = require('./users-schema.js');
 const Mongo = require('../../mongo-model.js');
+const roles = require('../roles/roles.js');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { response } = require('express');
+const { user } = require('../roles/roles.js');
 
 
 class User extends Mongo {
@@ -19,6 +20,7 @@ class User extends Mongo {
     super(userSchema);
     this.username = schema.username;
     this.password = schema.password;
+    this.role = schema.role;
   }
 
   static hashPass(value){
@@ -27,7 +29,12 @@ class User extends Mongo {
   
 
   async generateToken(username){
-    let token = jwt.sign(username, process.env.SECRET);
+    // add the role to the token generator as an object
+    let tokenData = {
+      username: username,
+      capabilties: roles[user.rol],
+    };
+    let token = jwt.sign(tokenData, process.env.SECRET);
     return token;
   }
 
